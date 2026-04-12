@@ -6,7 +6,7 @@ Anthropic ships the best agent infrastructure — sandboxed environments, persis
 
 Posse gives you the missing interface: create agents, run sessions, manage memory stores, and watch your agents work — all from a browser.
 
-![posse](https://github.com/user-attachments/assets/posse-screenshot.png)
+![posse](public/screenshot.png)
 
 ## What you get
 
@@ -19,26 +19,20 @@ Posse gives you the missing interface: create agents, run sessions, manage memor
 ## Quick start
 
 ```bash
-# Clone
-git clone https://github.com/oguzbilgic/posse.git
-cd posse
-
-# Set your Anthropic API key
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env.local
-
-# Run
-npm install
-npm run dev
+docker run -p 3000:3000 \
+  -e ANTHROPIC_API_KEY=sk-ant-... \
+  ghcr.io/oguzbilgic/posse:latest
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Docker
+## From source
 
 ```bash
-docker run -p 3000:3000 \
-  -e ANTHROPIC_API_KEY=sk-ant-... \
-  ghcr.io/oguzbilgic/posse:latest
+git clone https://github.com/oguzbilgic/posse.git
+cd posse
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env.local
+npm install && npm run dev
 ```
 
 ## How it works
