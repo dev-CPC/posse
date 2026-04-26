@@ -1,5 +1,11 @@
 // Minimal types for posse
 
+export interface McpServer {
+  type: "url" | string;
+  name: string;
+  url: string;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -8,7 +14,7 @@ export interface Agent {
   system: string;
   tools: unknown[];
   skills: unknown[];
-  mcp_servers: unknown[];
+  mcp_servers: McpServer[];
   callable_agents?: unknown[];
   metadata?: Record<string, string>;
   version: number;

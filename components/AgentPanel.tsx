@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createAgent, updateAgent, archiveAgent, listAgentVersions, listModels } from "../lib/api";
-import type { Agent, AgentVersion, ModelInfo } from "../lib/types";
+import type { Agent, AgentVersion, McpServer, ModelInfo } from "../lib/types";
 
 interface Props {
   agent?: Agent | null; // null = create mode
@@ -27,7 +27,7 @@ const modal: React.CSSProperties = {
   backdropFilter: "blur(4px)", display: "flex", zIndex: 100,
 };
 const card: React.CSSProperties = {
-  margin: "auto", width: "90%", maxWidth: 640, maxHeight: "85vh",
+  margin: "auto", width: "90%", maxWidth: 720, maxHeight: "85vh",
   background: "#161616", border: "1px solid #2a2a2a", borderRadius: 12,
   display: "flex", flexDirection: "column", overflow: "hidden",
 };
@@ -44,6 +44,25 @@ const btnStyle: React.CSSProperties = {
   color: "#aaa", fontSize: 12, padding: "6px 14px", cursor: "pointer",
 };
 
+function normalizeMcpServers(value: unknown): McpServer[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const raw = item as Record<string, unknown>;
+      const name = typeof raw.name === "string" ? raw.name : "";
+      const url = typeof raw.url === "string" ? raw.url : "";
+      const type = typeof raw.type === "string" ? raw.type : "url";
+      if (!name && !url) return null;
+      return { type, name, url };
+    })
+    .filter((item): item is McpServer => !!item);
+}
+
+function makeMcpTool(serverName: string) {
+  return { type: "mcp_toolset", mcp_server_name: serverName };
+}
+
 export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
   const isEdit = !!agent;
 
@@ -56,6 +75,7 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
   const [useToolset, setUseToolset] = useState(
     agent ? agent.tools?.some((t: any) => t.type === "agent_toolset_20260401") : true
   );
+  const [mcpServers, setMcpServers] = useState<McpServer[]>(normalizeMcpServers(agent?.mcp_servers));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -89,12 +109,48 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
     : FALLBACK_MODELS.map((id) => ({ id, display_name: id, created_at: "" }));
   const selectedMissing = model && !modelOptions.some((m) => m.id === model);
 
+  const updateMcpServer = (index: number, patch: Partial<McpServer>) => {
+    setMcpServers((servers) => servers.map((server, i) => i === index ? { ...server, ...patch } : server));
+  };
+
+  const addMcpServer = () => {
+    setMcpServers((servers) => [...servers, { type: "url", name: "", url: "" }]);
+  };
+
+  const removeMcpServer = (index: number) => {
+    setMcpServers((servers) => servers.filter((_, i) => i !== index));
+  };
+
   const handleSave = async () => {
     if (!name.trim()) { setError("Name is required"); return; }
+    const normalizedMcpServers = mcpServers
+      .map((server) => ({ type: "url", name: server.name.trim(), url: server.url.trim() }))
+      .filter((server) => server.name || server.url);
+
+    const seenMcpNames = new Set<string>();
+    for (const server of normalizedMcpServers) {
+      if (!server.name || !server.url) {
+        setError("Each MCP server needs both a name and URL");
+        return;
+      }
+      if (!/^https?:\/\//i.test(server.url)) {
+        setError(`MCP server "${server.name}" needs an http:// or https:// URL`);
+        return;
+      }
+      if (seenMcpNames.has(server.name)) {
+        setError(`Duplicate MCP server name: ${server.name}`);
+        return;
+      }
+      seenMcpNames.add(server.name);
+    }
+
     setSaving(true);
     setError("");
     try {
-      const tools = useToolset ? [{ type: "agent_toolset_20260401" }] : [];
+      const tools = [
+        ...(useToolset ? [{ type: "agent_toolset_20260401" }] : []),
+        ...normalizedMcpServers.map((server) => makeMcpTool(server.name)),
+      ];
       let result: Agent;
       if (isEdit) {
         result = await updateAgent(agent!.id, agent!.version, {
@@ -103,6 +159,7 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
           system: system.trim() || null,
           description: description.trim() || null,
           tools,
+          mcp_servers: normalizedMcpServers,
         });
       } else {
         result = await createAgent({
@@ -111,6 +168,7 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
           system: system.trim() || undefined,
           description: description.trim() || undefined,
           tools,
+          mcp_servers: normalizedMcpServers,
         });
       }
       onSaved(result);
@@ -239,6 +297,55 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
                 {t.label}
               </label>
             ))}
+          </div>
+
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <label style={labelStyle}>MCP Servers</label>
+                <div style={{ fontSize: 11, color: "#666", marginTop: -2 }}>
+                  Remote streamable HTTP servers. Vault credentials come later.
+                </div>
+              </div>
+              <button type="button" style={{ ...btnStyle, padding: "5px 10px" }} onClick={addMcpServer}>
+                + Add server
+              </button>
+            </div>
+
+            {mcpServers.length === 0 ? (
+              <div style={{ fontSize: 12, color: "#666", marginTop: 8, padding: "10px 12px", border: "1px dashed #333", borderRadius: 8 }}>
+                No MCP servers configured.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                {mcpServers.map((server, index) => (
+                  <div key={index} style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 8, padding: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "160px 1fr auto", gap: 8, alignItems: "center" }}>
+                      <input
+                        style={inputStyle}
+                        value={server.name}
+                        onChange={(e) => updateMcpServer(index, { name: e.target.value })}
+                        placeholder="github"
+                      />
+                      <input
+                        style={inputStyle}
+                        value={server.url}
+                        onChange={(e) => updateMcpServer(index, { url: e.target.value })}
+                        placeholder="https://api.example.com/mcp/"
+                      />
+                      <button
+                        type="button"
+                        style={{ ...btnStyle, padding: "6px 10px", color: "#fc533a", borderColor: "#fc533a44" }}
+                        onClick={() => removeMcpServer(index)}
+                        aria-label={`Remove MCP server ${index + 1}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {isEdit && (

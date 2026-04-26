@@ -4,6 +4,7 @@
 
 ### Features
 - **Models** — Load Claude model choices from Anthropic's Models API instead of a stale hardcoded dropdown.
+- **MCP servers** — Configure remote MCP servers on agents and automatically attach matching MCP toolsets.
 - **Environments** — Create execution environments with package/network config from the UI.
 
 ### Fixes

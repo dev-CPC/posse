@@ -1,6 +1,6 @@
 // Anthropic Managed Agents API (via /api/anthropic server proxy)
 // API key is server-side only — client never sees it
-import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo } from "./types";
+import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo, McpServer } from "./types";
 
 async function api(path: string, options?: RequestInit) {
   const res = await fetch(`/api/anthropic?path=${encodeURIComponent(path)}`, {
@@ -44,6 +44,7 @@ export async function createAgent(params: {
   system?: string;
   description?: string;
   tools?: unknown[];
+  mcp_servers?: McpServer[];
 }): Promise<Agent> {
   return api("/v1/agents", {
     method: "POST",
@@ -53,6 +54,7 @@ export async function createAgent(params: {
       ...(params.system ? { system: params.system } : {}),
       ...(params.description ? { description: params.description } : {}),
       tools: params.tools || [{ type: "agent_toolset_20260401" }],
+      ...(params.mcp_servers?.length ? { mcp_servers: params.mcp_servers } : {}),
     }),
   });
 }
@@ -63,6 +65,7 @@ export async function updateAgent(agentId: string, version: number, params: {
   system?: string | null;
   description?: string | null;
   tools?: unknown[];
+  mcp_servers?: McpServer[];
 }): Promise<Agent> {
   return api(`/v1/agents/${agentId}`, {
     method: "POST",
