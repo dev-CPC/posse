@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { listMemoryStores, createSession } from "../lib/api";
-import type { Agent, Environment, Session, MemoryStore } from "../lib/types";
+import { listMemoryStores, createSession, listVaults } from "../lib/api";
+import type { Agent, Environment, Session, MemoryStore, Vault } from "../lib/types";
 
 interface Props {
   agents: Agent[];
@@ -21,7 +21,9 @@ export function NewSessionModal({
   const [agentId, setAgentId] = useState(defaultAgentId || agents[0]?.id || "");
   const [envId, setEnvId] = useState(defaultEnvId || environments[0]?.id || "");
   const [stores, setStores] = useState<MemoryStore[]>([]);
+  const [vaults, setVaults] = useState<Vault[]>([]);
   const [selectedStores, setSelectedStores] = useState<Set<string>>(new Set());
+  const [selectedVaults, setSelectedVaults] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,10 +31,22 @@ export function NewSessionModal({
     listMemoryStores().then(setStores).catch(() => {
       setStores([]);
     });
+    listVaults().then(setVaults).catch(() => {
+      setVaults([]);
+    });
   }, []);
 
   const toggleStore = (id: string) => {
     setSelectedStores((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleVault = (id: string) => {
+    setSelectedVaults((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -57,6 +71,8 @@ export function NewSessionModal({
         environment_id: envId,
       };
       if (resources.length) body.resources = resources;
+      const vaultIds = Array.from(selectedVaults);
+      if (vaultIds.length) body.vault_ids = vaultIds;
 
       // Use raw api call through proxy
       const res = await fetch(`/api/anthropic?path=${encodeURIComponent("/v1/sessions")}`, {
@@ -155,6 +171,58 @@ export function NewSessionModal({
                 <option key={env.id} value={env.id}>{env.name || env.id.slice(0, 24)}</option>
               ))}
             </select>
+          </div>
+
+
+
+          {/* Vaults */}
+          <div>
+            <label style={labelStyle}>Vaults</label>
+            {vaults.length === 0 ? (
+              <div style={{ fontSize: 12, color: "#555" }}>No vaults available</div>
+            ) : (
+              <div style={{
+                border: "1px solid #2a2a2a", borderRadius: 8, overflow: "hidden",
+                maxHeight: 150, overflowY: "auto",
+              }}>
+                {vaults.map((v) => {
+                  const checked = selectedVaults.has(v.id);
+                  return (
+                    <div
+                      key={v.id}
+                      onClick={() => toggleVault(v.id)}
+                      style={{
+                        padding: "8px 12px", cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 10,
+                        background: checked ? "#1e1e1e" : "transparent",
+                        borderBottom: "1px solid #222",
+                      }}
+                    >
+                      <div style={{
+                        width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                        border: checked ? "2px solid #fcd53a" : "2px solid #444",
+                        background: checked ? "#fcd53a22" : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 10, color: "#fcd53a",
+                      }}>
+                        {checked ? "✓" : ""}
+                      </div>
+                      <div style={{ flex: 1, overflow: "hidden" }}>
+                        <div style={{ fontSize: 13, color: "#ddd", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {v.display_name}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#666", fontFamily: "monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {v.id}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div style={{ fontSize: 10, color: "#555", marginTop: 4 }}>
+              Selected vaults provide MCP credentials for this session.
+            </div>
           </div>
 
           {/* Memory Stores */}

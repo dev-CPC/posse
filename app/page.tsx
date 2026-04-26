@@ -7,10 +7,11 @@ import { Input } from "../components/Input";
 import { AgentPanel } from "../components/AgentPanel";
 import { EnvironmentPanel } from "../components/EnvironmentPanel";
 import { MemoryPanel } from "../components/MemoryPanel";
+import { VaultPanel } from "../components/VaultPanel";
 import { NewSessionModal } from "../components/NewSessionModal";
-import { checkConfig, listAgents, listEnvironments, listSessions, listSessionEvents, sendSessionEvent, getSession } from "../lib/api";
+import { checkConfig, listAgents, listEnvironments, listSessions, listSessionEvents, sendSessionEvent, getSession, listVaults } from "../lib/api";
 import { eventsToMessages } from "../lib/events";
-import type { Agent, Environment, Session, Message } from "../lib/types";
+import type { Agent, Environment, Session, Message, Vault } from "../lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
   idle: "#fcd53a",
@@ -81,6 +82,7 @@ export default function Home() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [vaults, setVaults] = useState<Vault[]>([]);
   const [active, setActive] = useState<Agent | null>(null);
   const [activeEnv, setActiveEnv] = useState<Environment | null>(null);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
@@ -89,6 +91,7 @@ export default function Home() {
   const [eventsLoading, setEventsLoading] = useState(false);
   const [envDetail, setEnvDetail] = useState<Environment | null>(null);
   const [showMemory, setShowMemory] = useState(false);
+  const [showVaults, setShowVaults] = useState(false);
   const [showNewSession, setShowNewSession] = useState(false);
   const [showEnvironmentPanel, setShowEnvironmentPanel] = useState(false);
   const [agentPanel, setAgentPanel] = useState<{ mode: "create" } | { mode: "edit"; agent: Agent } | null>(null);
@@ -104,6 +107,7 @@ export default function Home() {
           if (envs.length > 0 && !activeEnv) setActiveEnv(envs[0]);
         }).catch(console.error);
         listSessions().then(setSessions).catch(console.error);
+        listVaults().then(setVaults).catch(console.error);
       }
     }).catch(() => setConfigured(false));
   }, []);
@@ -201,6 +205,7 @@ export default function Home() {
         onSelectEnv={setActiveEnv}
         onShowEnvDetail={setEnvDetail}
         onShowMemory={() => setShowMemory(true)}
+        onShowVaults={() => setShowVaults(true)}
         onCreateAgent={() => setAgentPanel({ mode: "create" })}
         onEditAgent={(a) => setAgentPanel({ mode: "edit", agent: a })}
         onCreateEnvironment={() => setShowEnvironmentPanel(true)}
@@ -316,6 +321,14 @@ export default function Home() {
             if (active?.id === id) { setActive(null); setActiveSession(null); setMessages([]); }
             setAgentPanel(null);
           }}
+        />
+      )}
+
+      {showVaults && (
+        <VaultPanel
+          agentsMcpServers={agents.flatMap((agent) => agent.mcp_servers || [])}
+          onClose={() => setShowVaults(false)}
+          onChanged={() => listVaults().then(setVaults).catch(console.error)}
         />
       )}
 

@@ -14,6 +14,7 @@ interface Props {
   onShowEnvDetail: (env: Environment) => void;
 
   onShowMemory?: () => void;
+  onShowVaults?: () => void;
   onCreateAgent?: () => void;
   onEditAgent?: (agent: Agent) => void;
   onCreateEnvironment?: () => void;
@@ -68,7 +69,7 @@ function AgentRow({ agent, active, onSelect, onEdit }: {
   );
 }
 
-export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect, onSelectEnv, onShowEnvDetail, onShowMemory, onCreateAgent, onEditAgent, onCreateEnvironment }: Props) {
+export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect, onSelectEnv, onShowEnvDetail, onShowMemory, onShowVaults, onCreateAgent, onEditAgent, onCreateEnvironment }: Props) {
   const [showArchived, setShowArchived] = useState(false);
   const activeAgents = agents.filter((a) => !a.archived_at);
   const archivedAgents = agents.filter((a) => !!a.archived_at);
@@ -183,20 +184,35 @@ export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect,
         ))}
       </div>
 
-      {/* Memory */}
-      {onShowMemory && (
+      {/* Vaults + Memory */}
+      {(onShowVaults || onShowMemory) && (
         <div style={{ padding: "8px 6px", borderTop: "1px solid #2a2a2a" }}>
-          <div
-            onClick={onShowMemory}
-            style={{
-              padding: "6px 8px", borderRadius: 6, cursor: "pointer",
-              fontSize: 13, color: "#888",
-              display: "flex", alignItems: "center", gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 14 }}>🧠</span>
-            <span style={{ flex: 1 }}>Memory</span>
-          </div>
+          {onShowVaults && (
+            <div
+              onClick={onShowVaults}
+              style={{
+                padding: "6px 8px", borderRadius: 6, cursor: "pointer",
+                fontSize: 13, color: "#888",
+                display: "flex", alignItems: "center", gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 14 }}>🔐</span>
+              <span style={{ flex: 1 }}>Vaults</span>
+            </div>
+          )}
+          {onShowMemory && (
+            <div
+              onClick={onShowMemory}
+              style={{
+                padding: "6px 8px", borderRadius: 6, cursor: "pointer",
+                fontSize: 13, color: "#888",
+                display: "flex", alignItems: "center", gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 14 }}>🧠</span>
+              <span style={{ flex: 1 }}>Memory</span>
+            </div>
+          )}
         </div>
       )}
 

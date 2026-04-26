@@ -90,6 +90,34 @@ export interface Attachment {
   data: string; // base64
 }
 
+// Vaults + credentials
+export interface Vault {
+  id: string;
+  type: "vault" | string;
+  display_name: string;
+  metadata?: Record<string, string>;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+export interface VaultCredential {
+  id: string;
+  type: "vault_credential" | string;
+  vault_id: string;
+  display_name?: string | null;
+  auth: {
+    type: "static_bearer" | "mcp_oauth" | string;
+    mcp_server_url: string;
+    expires_at?: string | null;
+    refresh?: unknown;
+  };
+  metadata?: Record<string, string>;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
 // Memory stores
 export interface MemoryStore {
   id: string;

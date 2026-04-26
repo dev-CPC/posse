@@ -1,6 +1,6 @@
 // Anthropic Managed Agents API (via /api/anthropic server proxy)
 // API key is server-side only — client never sees it
-import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo, McpServer } from "./types";
+import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo, McpServer, Vault, VaultCredential } from "./types";
 
 async function api(path: string, options?: RequestInit) {
   const res = await fetch(`/api/anthropic?path=${encodeURIComponent(path)}`, {
@@ -112,6 +112,7 @@ export async function createSession(
   agentId: string,
   environmentId: string,
   memoryStoreIds?: string[],
+  vaultIds?: string[],
 ): Promise<Session> {
   const resources = memoryStoreIds?.map((id) => ({
     type: "memory_store",
@@ -124,6 +125,7 @@ export async function createSession(
       agent: agentId,
       environment_id: environmentId,
       ...(resources?.length ? { resources } : {}),
+      ...(vaultIds?.length ? { vault_ids: vaultIds } : {}),
     }),
   });
 }
@@ -139,6 +141,43 @@ export async function sendSessionEvent(
         type: "user.message",
         content: [{ type: "text", text }],
       }],
+    }),
+  });
+}
+
+
+// --- Vaults + MCP credentials ---
+
+export async function listVaults(): Promise<Vault[]> {
+  const data = await api("/v1/vaults?limit=100");
+  return data.data || [];
+}
+
+export async function createVault(displayName: string): Promise<Vault> {
+  return api("/v1/vaults", {
+    method: "POST",
+    body: JSON.stringify({ display_name: displayName }),
+  });
+}
+
+export async function listVaultCredentials(vaultId: string): Promise<VaultCredential[]> {
+  const data = await api(`/v1/vaults/${vaultId}/credentials?limit=100`);
+  return data.data || [];
+}
+
+export async function createStaticBearerCredential(
+  vaultId: string,
+  params: { mcpServerUrl: string; token: string; displayName?: string },
+): Promise<VaultCredential> {
+  return api(`/v1/vaults/${vaultId}/credentials`, {
+    method: "POST",
+    body: JSON.stringify({
+      display_name: params.displayName || undefined,
+      auth: {
+        type: "static_bearer",
+        mcp_server_url: params.mcpServerUrl,
+        token: params.token,
+      },
     }),
   });
 }
