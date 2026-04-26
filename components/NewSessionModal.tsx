@@ -22,7 +22,6 @@ export function NewSessionModal({
   const [envId, setEnvId] = useState(defaultEnvId || environments[0]?.id || "");
   const [stores, setStores] = useState<MemoryStore[]>([]);
   const [selectedStores, setSelectedStores] = useState<Set<string>>(new Set());
-  const [instructions, setInstructions] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
@@ -58,7 +57,6 @@ export function NewSessionModal({
         environment_id: envId,
       };
       if (resources.length) body.resources = resources;
-      if (instructions.trim()) body.system = instructions.trim();
 
       // Use raw api call through proxy
       const res = await fetch(`/api/anthropic?path=${encodeURIComponent("/v1/sessions")}`, {
@@ -209,20 +207,6 @@ export function NewSessionModal({
             <div style={{ fontSize: 10, color: "#555", marginTop: 4 }}>
               Selected stores give the agent memory tools (read, write, search, list)
             </div>
-          </div>
-
-          {/* Custom Instructions */}
-          <div>
-            <label style={labelStyle}>Custom Instructions <span style={{ color: "#555", textTransform: "none" }}>(optional)</span></label>
-            <textarea
-              style={{
-                ...inputStyle, height: 80, resize: "vertical",
-                fontFamily: "monospace", fontSize: 12,
-              }}
-              placeholder="Additional system instructions for this session..."
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-            />
           </div>
 
           {/* Error */}
