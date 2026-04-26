@@ -1,6 +1,6 @@
 // Anthropic Managed Agents API (via /api/anthropic server proxy)
 // API key is server-side only — client never sees it
-import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo, McpServer, Vault, VaultCredential } from "./types";
+import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo, McpServer, Vault, VaultCredential, SessionMemoryResource } from "./types";
 
 async function api(path: string, options?: RequestInit) {
   const res = await fetch(`/api/anthropic?path=${encodeURIComponent(path)}`, {
@@ -111,14 +111,14 @@ export async function listSessionEvents(sessionId: string): Promise<SessionEvent
 export async function createSession(
   agentId: string,
   environmentId: string,
-  memoryStoreIds?: string[],
+  memoryStores?: string[] | SessionMemoryResource[],
   vaultIds?: string[],
 ): Promise<Session> {
-  const resources = memoryStoreIds?.map((id) => ({
-    type: "memory_store",
-    memory_store_id: id,
-    access: "read_write",
-  }));
+  const resources = memoryStores?.map((store) => typeof store === "string" ? {
+    type: "memory_store" as const,
+    memory_store_id: store,
+    access: "read_write" as const,
+  } : store);
   return api("/v1/sessions", {
     method: "POST",
     body: JSON.stringify({

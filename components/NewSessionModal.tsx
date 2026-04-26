@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { listMemoryStores, createSession, listVaults } from "../lib/api";
-import type { Agent, Environment, Session, MemoryStore, Vault } from "../lib/types";
+import { listMemoryStores, listVaults } from "../lib/api";
+import type { Agent, Environment, Session, MemoryStore, Vault, MemoryStoreAccess } from "../lib/types";
 
 interface Props {
   agents: Agent[];
@@ -22,7 +22,7 @@ export function NewSessionModal({
   const [envId, setEnvId] = useState(defaultEnvId || environments[0]?.id || "");
   const [stores, setStores] = useState<MemoryStore[]>([]);
   const [vaults, setVaults] = useState<Vault[]>([]);
-  const [selectedStores, setSelectedStores] = useState<Set<string>>(new Set());
+  const [selectedStores, setSelectedStores] = useState<Map<string, MemoryStoreAccess>>(new Map());
   const [selectedVaults, setSelectedVaults] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -38,9 +38,17 @@ export function NewSessionModal({
 
   const toggleStore = (id: string) => {
     setSelectedStores((prev) => {
-      const next = new Set(prev);
+      const next = new Map(prev);
       if (next.has(id)) next.delete(id);
-      else next.add(id);
+      else next.set(id, "read_only");
+      return next;
+    });
+  };
+
+  const setStoreAccess = (id: string, access: MemoryStoreAccess) => {
+    setSelectedStores((prev) => {
+      const next = new Map(prev);
+      next.set(id, access);
       return next;
     });
   };
@@ -59,11 +67,10 @@ export function NewSessionModal({
     setCreating(true);
     setError("");
     try {
-      const storeIds = Array.from(selectedStores);
-      const resources: Array<Record<string, string>> = storeIds.map((id) => ({
+      const resources = Array.from(selectedStores.entries()).map(([id, access]) => ({
         type: "memory_store",
         memory_store_id: id,
-        access: "read_write",
+        access,
       }));
 
       const body: Record<string, unknown> = {
@@ -236,7 +243,8 @@ export function NewSessionModal({
                 maxHeight: 180, overflowY: "auto",
               }}>
                 {stores.map((s) => {
-                  const checked = selectedStores.has(s.id);
+                  const access = selectedStores.get(s.id);
+                  const checked = Boolean(access);
                   return (
                     <div
                       key={s.id}
@@ -267,13 +275,36 @@ export function NewSessionModal({
                           </div>
                         )}
                       </div>
+                      {checked && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ display: "flex", gap: 4, flexShrink: 0 }}
+                        >
+                          {(["read_only", "read_write"] as MemoryStoreAccess[]).map((mode) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              onClick={() => setStoreAccess(s.id, mode)}
+                              style={{
+                                padding: "3px 7px", borderRadius: 999, fontSize: 10,
+                                border: access === mode ? "1px solid #fcd53a" : "1px solid #333",
+                                background: access === mode ? "#fcd53a22" : "transparent",
+                                color: access === mode ? "#fcd53a" : "#777",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {mode === "read_only" ? "Read" : "Write"}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
             )}
             <div style={{ fontSize: 10, color: "#555", marginTop: 4 }}>
-              Selected stores give the agent memory tools (read, write, search, list)
+              Memory stores attach at session creation. Use Read for shared/reference memory; Write lets the agent persist updates.
             </div>
           </div>
 

@@ -1,11 +1,12 @@
 # Changelog
 
-## Next
+## v0.2.0 - 2026-04-25
 
 ### Features
 - **Models** — Load Claude model choices from Anthropic's Models API instead of a stale hardcoded dropdown.
 - **MCP servers** — Configure remote MCP servers on agents and automatically attach matching MCP toolsets.
 - **Environments** — Create execution environments with package/network config from the UI.
+- **Memory access** — Attach memory stores to new sessions as read-only or read-write.
 
 ### Fixes
 - Removed unsupported custom instructions from session creation payloads; instructions belong on agents, not sessions.

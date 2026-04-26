@@ -119,12 +119,21 @@ export interface VaultCredential {
 }
 
 // Memory stores
+export type MemoryStoreAccess = "read_only" | "read_write";
+
 export interface MemoryStore {
   id: string;
   name: string;
   description: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface SessionMemoryResource {
+  type: "memory_store";
+  memory_store_id: string;
+  access: MemoryStoreAccess;
+  instructions?: string;
 }
 
 export interface Memory {
