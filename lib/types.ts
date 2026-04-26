@@ -25,9 +25,16 @@ export interface Environment {
   id: string;
   name: string;
   description?: string;
+  config?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  archived_at?: string | null;
   [key: string]: unknown;
+}
+
+export interface CreateEnvironmentRequest {
+  name: string;
+  config: Record<string, unknown>;
 }
 
 export interface Session {

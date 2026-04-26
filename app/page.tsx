@@ -5,6 +5,7 @@ import { Sidebar } from "../components/Sidebar";
 import { Chat } from "../components/Chat";
 import { Input } from "../components/Input";
 import { AgentPanel } from "../components/AgentPanel";
+import { EnvironmentPanel } from "../components/EnvironmentPanel";
 import { MemoryPanel } from "../components/MemoryPanel";
 import { NewSessionModal } from "../components/NewSessionModal";
 import { checkConfig, listAgents, listEnvironments, listSessions, listSessionEvents, sendSessionEvent, getSession } from "../lib/api";
@@ -89,6 +90,7 @@ export default function Home() {
   const [envDetail, setEnvDetail] = useState<Environment | null>(null);
   const [showMemory, setShowMemory] = useState(false);
   const [showNewSession, setShowNewSession] = useState(false);
+  const [showEnvironmentPanel, setShowEnvironmentPanel] = useState(false);
   const [agentPanel, setAgentPanel] = useState<{ mode: "create" } | { mode: "edit"; agent: Agent } | null>(null);
 
   // Check server config on mount
@@ -201,6 +203,7 @@ export default function Home() {
         onShowMemory={() => setShowMemory(true)}
         onCreateAgent={() => setAgentPanel({ mode: "create" })}
         onEditAgent={(a) => setAgentPanel({ mode: "edit", agent: a })}
+        onCreateEnvironment={() => setShowEnvironmentPanel(true)}
       />
       {active && (
         <div style={{
@@ -318,6 +321,17 @@ export default function Home() {
 
       {showMemory && (
         <MemoryPanel onClose={() => setShowMemory(false)} />
+      )}
+
+      {showEnvironmentPanel && (
+        <EnvironmentPanel
+          onClose={() => setShowEnvironmentPanel(false)}
+          onCreated={(env) => {
+            setEnvironments((prev) => [env, ...prev.filter((e) => e.id !== env.id)]);
+            setActiveEnv(env);
+            setShowEnvironmentPanel(false);
+          }}
+        />
       )}
 
       {showNewSession && (

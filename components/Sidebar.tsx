@@ -16,6 +16,7 @@ interface Props {
   onShowMemory?: () => void;
   onCreateAgent?: () => void;
   onEditAgent?: (agent: Agent) => void;
+  onCreateEnvironment?: () => void;
 }
 
 function AgentRow({ agent, active, onSelect, onEdit }: {
@@ -67,7 +68,7 @@ function AgentRow({ agent, active, onSelect, onEdit }: {
   );
 }
 
-export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect, onSelectEnv, onShowEnvDetail, onShowMemory, onCreateAgent, onEditAgent }: Props) {
+export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect, onSelectEnv, onShowEnvDetail, onShowMemory, onCreateAgent, onEditAgent, onCreateEnvironment }: Props) {
   const [showArchived, setShowArchived] = useState(false);
   const activeAgents = agents.filter((a) => !a.archived_at);
   const archivedAgents = agents.filter((a) => !!a.archived_at);
@@ -136,15 +137,30 @@ export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect,
       </div>
 
       {/* Environments */}
-      {environments.length > 0 && (
-        <div style={{ padding: "8px 6px", borderTop: "1px solid #2a2a2a" }}>
-          <div style={{
-            fontSize: 10, color: "#666", textTransform: "uppercase",
-            letterSpacing: "0.5px", padding: "4px 8px 6px",
-          }}>
-            Environments
+      <div style={{ padding: "8px 6px", borderTop: "1px solid #2a2a2a" }}>
+        <div style={{
+          fontSize: 10, color: "#666", textTransform: "uppercase",
+          letterSpacing: "0.5px", padding: "4px 8px 6px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <span>Environments</span>
+          {onCreateEnvironment && (
+            <button
+              onClick={onCreateEnvironment}
+              style={{
+                background: "transparent", border: "1px solid #333", borderRadius: 5,
+                color: "#777", fontSize: 11, padding: "0 6px", cursor: "pointer",
+                lineHeight: "16px",
+              }}
+              title="Create environment"
+            >+</button>
+          )}
+        </div>
+        {environments.length === 0 ? (
+          <div style={{ padding: "6px 8px", fontSize: 12, color: "#555" }}>
+            No environments
           </div>
-          {environments.map((env) => (
+        ) : environments.map((env) => (
               <div
                 key={env.id}
                 onClick={() => onShowEnvDetail(env)}
@@ -164,9 +180,8 @@ export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect,
                   {env.name || env.id.slice(0, 24)}
                 </span>
               </div>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Memory */}
       {onShowMemory && (
