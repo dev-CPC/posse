@@ -167,8 +167,9 @@ export async function writeMemory(storeId: string, path: string, content: string
 }
 
 export async function updateMemory(storeId: string, memoryId: string, updates: { content?: string; path?: string }): Promise<Memory> {
+  // Anthropic's memory update endpoint uses POST, not PATCH.
   return api(`/v1/memory_stores/${storeId}/memories/${memoryId}`, {
-    method: "PATCH",
+    method: "POST",
     body: JSON.stringify(updates),
   });
 }
