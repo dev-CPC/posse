@@ -3,6 +3,7 @@
 ## Next
 
 ### Features
+- **Models** — Load Claude model choices from Anthropic's Models API instead of a stale hardcoded dropdown.
 - **Environments** — Create execution environments with package/network config from the UI.
 
 ### Fixes

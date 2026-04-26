@@ -21,6 +21,14 @@ export interface AgentVersion extends Agent {
   // same shape, each entry is a historical version
 }
 
+export interface ModelInfo {
+  id: string;
+  display_name: string;
+  created_at: string;
+  max_input_tokens?: number;
+  max_tokens?: number;
+}
+
 export interface Environment {
   id: string;
   name: string;

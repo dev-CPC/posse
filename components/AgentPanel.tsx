@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createAgent, updateAgent, archiveAgent, listAgentVersions } from "../lib/api";
-import type { Agent, AgentVersion } from "../lib/types";
+import { createAgent, updateAgent, archiveAgent, listAgentVersions, listModels } from "../lib/api";
+import type { Agent, AgentVersion, ModelInfo } from "../lib/types";
 
 interface Props {
   agent?: Agent | null; // null = create mode
@@ -11,10 +11,11 @@ interface Props {
   onArchived?: (agentId: string) => void;
 }
 
-const MODELS = [
+const FALLBACK_MODELS = [
+  "claude-opus-4-7",
   "claude-sonnet-4-6",
   "claude-opus-4-6",
-  "claude-haiku-4-6",
+  "claude-haiku-4-5-20251001",
 ];
 
 const TOOL_PRESETS = [
@@ -47,7 +48,9 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
   const isEdit = !!agent;
 
   const [name, setName] = useState(agent?.name || "");
-  const [model, setModel] = useState(agent?.model?.id || MODELS[0]);
+  const [model, setModel] = useState(agent?.model?.id || FALLBACK_MODELS[0]);
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [modelsError, setModelsError] = useState("");
   const [system, setSystem] = useState(agent?.system || "");
   const [description, setDescription] = useState(agent?.description || "");
   const [useToolset, setUseToolset] = useState(
@@ -66,6 +69,25 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
         .catch(() => {});
     }
   }, [agent, showVersions, versions.length]);
+
+  useEffect(() => {
+    let cancelled = false;
+    listModels()
+      .then((items) => {
+        if (cancelled) return;
+        setModels(items);
+        if (!model && items[0]?.id) setModel(items[0].id);
+      })
+      .catch((e: any) => {
+        if (!cancelled) setModelsError(e.message || "Failed to load models");
+      });
+    return () => { cancelled = true; };
+  }, [model]);
+
+  const modelOptions = models.length
+    ? models
+    : FALLBACK_MODELS.map((id) => ({ id, display_name: id, created_at: "" }));
+  const selectedMissing = model && !modelOptions.some((m) => m.id === model);
 
   const handleSave = async () => {
     if (!name.trim()) { setError("Name is required"); return; }
@@ -182,8 +204,18 @@ export function AgentPanel({ agent, onClose, onSaved, onArchived }: Props) {
           <div>
             <label style={labelStyle}>Model *</label>
             <select value={model} onChange={(e) => setModel(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
-              {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {selectedMissing && <option value={model}>{model} (current)</option>}
+              {modelOptions.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.display_name ? `${m.display_name} — ${m.id}` : m.id}
+                </option>
+              ))}
             </select>
+            {modelsError && (
+              <div style={{ fontSize: 11, color: "#777", marginTop: 4 }}>
+                Couldn&apos;t load live models; using fallback list.
+              </div>
+            )}
           </div>
 
           <div>

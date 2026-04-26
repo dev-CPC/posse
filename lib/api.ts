@@ -1,6 +1,6 @@
 // Anthropic Managed Agents API (via /api/anthropic server proxy)
 // API key is server-side only — client never sees it
-import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory } from "./types";
+import type { Agent, AgentVersion, CreateEnvironmentRequest, Environment, Session, SessionEvent, MemoryStore, Memory, ModelInfo } from "./types";
 
 async function api(path: string, options?: RequestInit) {
   const res = await fetch(`/api/anthropic?path=${encodeURIComponent(path)}`, {
@@ -26,6 +26,11 @@ export async function checkConfig(): Promise<boolean> {
 
 export async function listAgents(): Promise<Agent[]> {
   const data = await api("/v1/agents?include_archived=true");
+  return data.data || [];
+}
+
+export async function listModels(): Promise<ModelInfo[]> {
+  const data = await api("/v1/models?limit=100");
   return data.data || [];
 }
 
