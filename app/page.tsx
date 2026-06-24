@@ -149,7 +149,10 @@ export default function Home() {
     if (!active || active.archived_at) return;
 
     if (!activeSession) {
-      setShowNewSession(true);
+      setMessages((prev) => [...prev, {
+        role: "system",
+        content: 'Pick today\'s session ("Daily Brief - …") from the list on the left to chat. Sessions are created automatically by the daily brief — there is no manual "new session".',
+      }]);
       return;
     }
 
@@ -222,17 +225,8 @@ export default function Home() {
             <span style={{ fontSize: 12, color: "#888", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px" }}>
               Sessions
             </span>
-            {!active.archived_at && (
-              <button
-                onClick={() => setShowNewSession(true)}
-                style={{
-                  background: "transparent", border: "1px solid #333", borderRadius: 6,
-                  color: "#aaa", fontSize: 12, padding: "3px 10px", cursor: "pointer",
-                }}
-              >
-                + New
-              </button>
-            )}
+            {/* New-session creation disabled: sessions are created only by the daily-brief
+                automation (with vault + memory attached). Users resume the dated session below. */}
           </div>
           <SessionList
             sessions={sessions}
@@ -385,7 +379,7 @@ export default function Home() {
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
                 color: "#444", fontSize: 13,
               }}>
-                {activeSession ? "No messages yet" : "Send a message to start a new session"}
+                {activeSession ? "No messages yet" : "Select today's session from the list to chat"}
               </div>
             )}
             <Input onSend={handleSend} disabled={loading || eventsLoading || !!active?.archived_at} />
