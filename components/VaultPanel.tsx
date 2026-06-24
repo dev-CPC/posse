@@ -105,7 +105,7 @@ export function VaultPanel({ agentsMcpServers, onClose, onChanged }: Props) {
         <div style={{ width: 260, borderRight: "1px solid #2a2a2a", display: "flex", flexDirection: "column" }}>
           <div style={{ padding: "12px", borderBottom: "1px solid #2a2a2a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ fontSize: 12, color: "#888", fontWeight: 600, textTransform: "uppercase" }}>Vaults</div>
-            <button style={btnStyle} onClick={() => setCreatingVault(true)}>+ Vault</button>
+            {/* + Vault create button removed */}
           </div>
           {creatingVault && (
             <div style={{ padding: 12, borderBottom: "1px solid #2a2a2a", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -137,11 +137,7 @@ export function VaultPanel({ agentsMcpServers, onClose, onChanged }: Props) {
           </div>
 
           <div style={{ flex: 1, overflowY: "auto", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
-            {activeVault && (
-              <button style={{ ...btnStyle, alignSelf: "flex-start", color: "#eee", borderColor: "#fcd53a66", background: "#fcd53a15" }} onClick={() => setCreatingCredential(true)}>
-                + Add MCP credential
-              </button>
-            )}
+            {/* + Add MCP credential button removed */}
 
             {creatingCredential && activeVault && (
               <div style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 8, padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>

@@ -86,15 +86,7 @@ export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect,
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <span style={{ fontSize: 16, fontWeight: 600, color: "#eee" }}>posse</span>
-        {onCreateAgent && (
-          <button
-            onClick={onCreateAgent}
-            style={{
-              background: "transparent", border: "1px solid #333", borderRadius: 6,
-              color: "#aaa", fontSize: 12, padding: "2px 8px", cursor: "pointer",
-            }}
-          >+</button>
-        )}
+        {/* Create-agent button removed. */}
       </div>
 
       {/* Agent list */}

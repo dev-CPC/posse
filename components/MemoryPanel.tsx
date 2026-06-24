@@ -165,7 +165,7 @@ export function MemoryPanel({ onClose }: Props) {
           <div style={{ borderBottom: "1px solid #2a2a2a" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px 0" }}>
               <div style={sectionLabel}>Memory Stores</div>
-              <button style={{ ...btnStyle, opacity: storeError ? 0.4 : 1 }} onClick={() => !storeError && setCreatingStore(true)} disabled={!!storeError}>+ Store</button>
+              {/* + Store create button removed */}
             </div>
             {creatingStore && (
               <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -201,7 +201,7 @@ export function MemoryPanel({ onClose }: Props) {
             <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px 0" }}>
                 <div style={sectionLabel}>Memories</div>
-                <button style={btnStyle} onClick={() => { setCreating(true); setActiveMem(null); setEditing(false); }}>+ New</button>
+                {/* + New memory create button removed */}
               </div>
               <div style={{ flex: 1, overflowY: "auto" }}>
                 {memories.map((m) => (
