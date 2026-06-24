@@ -8,7 +8,7 @@ import { AgentPanel } from "../components/AgentPanel";
 import { EnvironmentPanel } from "../components/EnvironmentPanel";
 import { MemoryPanel } from "../components/MemoryPanel";
 import { VaultPanel } from "../components/VaultPanel";
-import { NewSessionModal } from "../components/NewSessionModal";
+// NewSessionModal removed — manual session creation is disabled (daily-brief automation creates sessions).
 import { checkConfig, listAgents, listEnvironments, listSessions, listSessionEvents, sendSessionEvent, getSession, listVaults } from "../lib/api";
 import { eventsToMessages } from "../lib/events";
 import type { Agent, Environment, Session, Message, Vault } from "../lib/types";
@@ -92,7 +92,6 @@ export default function Home() {
   const [envDetail, setEnvDetail] = useState<Environment | null>(null);
   const [showMemory, setShowMemory] = useState(false);
   const [showVaults, setShowVaults] = useState(false);
-  const [showNewSession, setShowNewSession] = useState(false);
   const [showEnvironmentPanel, setShowEnvironmentPanel] = useState(false);
   const [agentPanel, setAgentPanel] = useState<{ mode: "create" } | { mode: "edit"; agent: Agent } | null>(null);
 
@@ -136,13 +135,6 @@ export default function Home() {
   const handleSelectSession = (session: Session) => {
     setActiveSession(session);
     setMessages([]);
-  };
-
-  const handleSessionCreated = (session: Session) => {
-    setSessions((prev) => [session, ...prev]);
-    setActiveSession(session);
-    setMessages([]);
-    setShowNewSession(false);
   };
 
   const handleSend = async (text: string) => {
@@ -211,7 +203,6 @@ export default function Home() {
         onShowVaults={() => setShowVaults(true)}
         onCreateAgent={() => setAgentPanel({ mode: "create" })}
         onEditAgent={(a) => setAgentPanel({ mode: "edit", agent: a })}
-        onCreateEnvironment={() => setShowEnvironmentPanel(true)}
       />
       {active && (
         <div style={{
@@ -341,16 +332,7 @@ export default function Home() {
         />
       )}
 
-      {showNewSession && (
-        <NewSessionModal
-          agents={agents}
-          environments={environments}
-          defaultAgentId={active?.id}
-          defaultEnvId={activeEnv?.id}
-          onCreated={handleSessionCreated}
-          onClose={() => setShowNewSession(false)}
-        />
-      )}
+      {/* New-session modal removed — sessions are created only by the daily-brief automation. */}
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {active ? (

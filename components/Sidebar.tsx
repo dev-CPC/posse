@@ -69,7 +69,7 @@ function AgentRow({ agent, active, onSelect, onEdit }: {
   );
 }
 
-export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect, onSelectEnv, onShowEnvDetail, onShowMemory, onShowVaults, onCreateAgent, onEditAgent, onCreateEnvironment }: Props) {
+export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect, onSelectEnv, onShowEnvDetail, onShowMemory, onShowVaults, onCreateAgent, onEditAgent }: Props) {
   const [showArchived, setShowArchived] = useState(false);
   const activeAgents = agents.filter((a) => !a.archived_at);
   const archivedAgents = agents.filter((a) => !!a.archived_at);
@@ -145,17 +145,7 @@ export function Sidebar({ agents, environments, activeId, activeEnvId, onSelect,
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <span>Environments</span>
-          {onCreateEnvironment && (
-            <button
-              onClick={onCreateEnvironment}
-              style={{
-                background: "transparent", border: "1px solid #333", borderRadius: 5,
-                color: "#777", fontSize: 11, padding: "0 6px", cursor: "pointer",
-                lineHeight: "16px",
-              }}
-              title="Create environment"
-            >+</button>
-          )}
+          {/* Create-environment button removed. */}
         </div>
         {environments.length === 0 ? (
           <div style={{ padding: "6px 8px", fontSize: 12, color: "#555" }}>
